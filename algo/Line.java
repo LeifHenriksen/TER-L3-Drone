@@ -45,7 +45,22 @@ public class Line {
 	    return (val > 0)? Orientation.Clockwise: Orientation.CounterClockwise;
 	}
 	
-	static Point lineLineIntersection(Line l1, Line l2) 
+	static public double distancePointToPointOfInter(Point p, Line l1, Line l2) 
+	{
+		Point pointInter = lineLineIntersection(l1, l2);
+		if(pointInter == null)
+		{
+			return -1;
+		}
+		else
+		{
+			return Point.distance(p, pointInter);
+		}
+		
+	}
+	
+	//Point of intersection
+	static public Point lineLineIntersection(Line l1, Line l2) 
     { 
         // Line AB represented as a1x + b1y = c1 
         double a1 = l1.getP2().getY() - l1.getP1().getY(); 

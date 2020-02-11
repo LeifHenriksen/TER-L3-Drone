@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 
 public class Point {
 	double x;
@@ -42,6 +43,24 @@ public class Point {
 	}
 	public void setLng(double lng) {
 		this.lng = lng;
+	}
+	static public Point maxX(ArrayList<Point> listeP) 
+	{
+		Point max = listeP.get(0);
+		for(int i = 1; i<listeP.size(); i++)
+			if(max.getX()<listeP.get(i).getX())
+				max = listeP.get(i);
+		
+		return max;
+	}
+	static public Point maxY(ArrayList<Point> listeP) 
+	{
+		Point max = listeP.get(0);
+		for(int i = 1; i<listeP.size(); i++)
+			if(max.getY()<listeP.get(i).getY())
+				max = listeP.get(i);
+		
+		return max;
 	}
 	static public double distance(Point p1, Point p2){
 		return Math.sqrt(((p2.getX() - p1.getX())*(p2.getX() - p1.getX()))+
