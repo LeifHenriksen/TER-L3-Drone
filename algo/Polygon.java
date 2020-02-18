@@ -2,11 +2,11 @@ import java.util.ArrayList;
 
 public class Polygon {
 	
-	ArrayList<Point> vertices;
-	ArrayList<Point> pointsInternes;
-	ArrayList<Line> edges;
-	double distanceEntrePoints;
-	double distanceBords;
+	private ArrayList<Point> vertices;
+	private ArrayList<Point> pointsInternes;
+	private ArrayList<Line> edges;
+	private double distanceEntrePoints;
+	private double distanceBords;
 	
 	public Polygon(ArrayList<Point> vertices, double distanceEntrePoints, double distanceBords) {
 		this.vertices = vertices;
@@ -37,8 +37,40 @@ public class Polygon {
 	//Rempli la carte de points
 	private void addPoints() 
 	{
-		int hauteurCarte   = (int)Point.maxY(this.getVertices()).getY();
-		int largeurCarte   = (int)Point.maxX(this.getVertices()).getX();
+		double hauteurCarte   = this.getVertices().stream()
+														.mapToDouble(p -> p.getLat())
+														.max()
+														.getAsDouble();//Point.maxY(this.getVertices()).getY();
+		
+		double largeurCarte   = this.getVertices().stream()
+				   					  					.mapToDouble(p -> p.getLng())
+				   					  					.max()
+				   					  					.getAsDouble();//(int)Point.maxX(this.getVertices()).getX();
+		
+		double lng_min =  this.getVertices().stream()
+ 											.mapToDouble(p -> p.getLng())
+ 											.min()
+ 											.getAsDouble();
+
+		double lat_min =  this.getVertices().stream()
+ 											.mapToDouble(p -> p.getLat())
+ 											.min()
+ 											.getAsDouble();
+		
+		Point p = new Point(lat_min, lng_min);
+		System.out.println(p);
+		System.out.println(hauteurCarte);
+		for(;p.getLat()<hauteurCarte; p.decalageLat(this.distanceEntrePoints))
+		{
+			
+			for(;p.getLng()<largeurCarte; p.decalageLng(this.distanceEntrePoints))
+			{
+				this.pointsInternes.add(new Point(p.getLat(), p.getLng()));
+			}
+			p.setLng(lng_min);
+		}
+		System.out.println(this.getPointsInternes());
+		/*
 		for(int i = 0; i<largeurCarte/distanceEntrePoints; i++)
 		{
 			for(int j = 0; j<hauteurCarte/distanceEntrePoints; j++)
@@ -46,6 +78,7 @@ public class Polygon {
 				this.pointsInternes.add(new Point(i*distanceEntrePoints,j*distanceEntrePoints,-1,-1,-1));
 			}
 		}
+		*/
 	}
 	
 	private boolean pointInside(Point p) 
@@ -62,7 +95,7 @@ public class Polygon {
 		for(int i = 0; i<this.edges.size(); i++)
 		{
 			Line edge = this.edges.get(i);
-			if(Line.intersect(rayRight, edge))
+			if(rayRight.intersect(edge))
 			{
 				//Verifier si on touche un coin, si oui ce que le edge contien un autre point p2, tq p2.y > p1.y 
 				if(edge.getP1().getY() == p.getY())
@@ -80,36 +113,36 @@ public class Polygon {
 					nbIntersections++;
 				}
 				
-				if(Line.pointInsideLine(edge, p))
+				if(edge.pointInsideLine(p))
 					insideLine = true;
 			}
 			//verifier que on n'est pas trop proche de un edge
 			if(!insideLine && (nbIntersections%2)>0)
 			{
-				double dis = Line.distancePointToPointOfInter(p, rayRight, edge); 
-				if(Line.intersect(rayRight, edge))
+				double dis =  rayRight.distancePointToPointOfIntersection(p, edge); 
+				if(rayRight.intersect(edge))
 				{
 					if(dis < distanceBords && dis >= 0)
 						tropProche = true;
 				}
 				
-				if(Line.intersect(rayLeft, edge))
+				if(rayLeft.intersect(edge))
 				{
-					dis = Line.distancePointToPointOfInter(p, rayLeft, edge);
+					dis = rayLeft.distancePointToPointOfIntersection(p, edge);
 					if(dis < distanceBords && dis >= 0)
 						tropProche = true;	
 				}
 				
-				if(Line.intersect(rayTop, edge))
+				if(rayTop.intersect(edge))
 				{
-					dis = Line.distancePointToPointOfInter(p, rayTop, edge);
+					dis = rayTop.distancePointToPointOfIntersection(p, edge);
 					if(dis < distanceBords && dis >= 0)
 						tropProche = true;	
 				}
 				
-				if(Line.intersect(rayBot, edge))
+				if(rayBot.intersect(edge))
 				{
-					dis = Line.distancePointToPointOfInter(p, rayBot, edge);
+					dis = rayBot.distancePointToPointOfIntersection(p, edge);
 					if(dis < distanceBords && dis >= 0)
 						tropProche = true;	
 				}
@@ -117,7 +150,7 @@ public class Polygon {
 		}
 		if(p.getY() == 100) 
 		{
-			System.out.println(p + " \n Right : " + nbIntersections + ", insideLine  = " + insideLine + ", tropProche = " + tropProche);
+			//System.out.println(p + " \n Right : " + nbIntersections + ", insideLine  = " + insideLine + ", tropProche = " + tropProche);
 			//System.out.println("Top   " + nbIntersectionsTop);
 		}
 		return (nbIntersections%2)>0 && !insideLine && !tropProche;
@@ -125,7 +158,7 @@ public class Polygon {
 	
 	private void enleverPointsDehors() 
 	{
-		System.out.println(this.pointsInternes.size());
+		//System.out.println(this.pointsInternes.size());
 		for(int i = this.pointsInternes.size() - 1; i>=0; i--)
 		{
 			if(!this.pointInside(this.pointsInternes.get(i)))
@@ -134,6 +167,6 @@ public class Polygon {
 				this.pointsInternes.remove(i);
 			}
 		}
-		System.out.println(this.pointsInternes.size());
+		//System.out.println(this.pointsInternes.size());
 	}
 }

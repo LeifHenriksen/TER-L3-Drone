@@ -13,7 +13,7 @@ public class Pdf {
 		    out = new BufferedWriter(fstream);
 		   
 		    out.write("%!PS-Adobe-3.0 \n");
-		    out.write("%%BoundingBox: 0 0 500 500 \n");
+		    out.write("%%BoundingBox: 0 0 10000 10000 \n");
 		    
 		    writeVertices(out, poly);
 		    writePoints(out, poly);
@@ -78,12 +78,14 @@ public class Pdf {
 	
 	private static void writePoints(BufferedWriter out, Polygon poly) throws IOException 
 	{
-		System.out.println(poly.pointsInternes.size());
-		for(int i = 0; i<poly.pointsInternes.size(); i++)
+		//System.out.println(poly.getPointsInternes().size());
+		for(int i = 0; i<poly.getPointsInternes().size(); i++)
 		{
-			out.write(Double.toString(poly.pointsInternes.get(i).getX()));
+			out.write((Double.toString(poly.getPointsInternes().get(i).getX())).substring(2));
+			//System.out.println((Double.toString(poly.getPointsInternes().get(i).getX())).substring(3));
 		    out.write(" ");
-		    out.write(Double.toString(poly.pointsInternes.get(i).getY()));
+		    out.write((Double.toString(poly.getPointsInternes().get(i).getY())).substring(3));
+		    //System.out.println((Double.toString(poly.getPointsInternes().get(i).getY())).substring(3));
 		    out.write(" 1 0 360 arc \n");
 		    if(false)//poly.pointsInternes.get(i).getY() == 100)
 		    	out.write("0 1 0 setrgbcolor \n");
@@ -101,35 +103,35 @@ public class Pdf {
 	
 	private static void writeVerticesLines(BufferedWriter out, Polygon poly) throws IOException 
 	{
-		for(int i = 0; i<(poly.vertices.size() - 1); i++)
+		for(int i = 0; i<(poly.getVertices().size() - 1); i++)
 		{
-			out.write(Double.toString(poly.vertices.get(i).getX()));
+			out.write(Double.toString(poly.getVertices().get(i).getX()).substring(2));
 		    out.write(" ");
-		    out.write(Double.toString(poly.vertices.get(i).getY()));
+		    out.write(Double.toString(poly.getVertices().get(i).getY()).substring(3));
 		    out.write(" moveto \n");
-		    out.write(Double.toString(poly.vertices.get(i+1).getX()));
+		    out.write(Double.toString(poly.getVertices().get(i+1).getX()).substring(2));
 		    out.write(" ");
-		    out.write(Double.toString(poly.vertices.get(i+1).getY()));
+		    out.write(Double.toString(poly.getVertices().get(i+1).getY()).substring(3));
 		    out.write(" lineto \n");
 		    out.write("stroke \n");
 		}
 		
-		int last = poly.vertices.size() - 1;
+		int last = poly.getVertices().size() - 1;
 		int first = 0;
-		out.write(Double.toString(poly.vertices.get(last).getX()));
+		out.write(Double.toString(poly.getVertices().get(last).getX()).substring(2));
 	    out.write(" ");
-	    out.write(Double.toString(poly.vertices.get(last).getY()));
+	    out.write(Double.toString(poly.getVertices().get(last).getY()).substring(3));
 	    out.write(" moveto \n");
-	    out.write(Double.toString(poly.vertices.get(first).getX()));
+	    out.write(Double.toString(poly.getVertices().get(first).getX()).substring(2));
 	    out.write(" ");
-	    out.write(Double.toString(poly.vertices.get(first).getY()));
+	    out.write(Double.toString(poly.getVertices().get(first).getY()).substring(3));
 	    out.write(" lineto \n");
 	    out.write("stroke \n");
 	}
 	
 	private static void writePointsChemin(BufferedWriter out, ArrayList<Point> chemin) throws IOException 
 	{
-		System.out.println(chemin.size());
+		//System.out.println(chemin.size());
 		for(int i = 0; i<chemin.size(); i++)
 		{
 			out.write(Double.toString(chemin.get(i).getX()));

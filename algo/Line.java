@@ -1,5 +1,5 @@
 
-public class Line {
+public class Line{
 	
 	Point p1;
 	Point p2;
@@ -25,19 +25,20 @@ public class Line {
 		this.p2 = p2;
 	}
 	
-	static boolean onSegment(Line l1, Point p3) 
+	
+	public boolean onSegment(Point p3) 
 	{ 
-	    if (p3.x <= Math.max(l1.getP1().x, l1.getP2().x) && p3.x >= Math.min(l1.getP1().x, l1.getP2().x) && 
-	    	p3.y <= Math.max(l1.getP1().y, l1.getP2().y) && p3.y >= Math.min(l1.getP1().y, l1.getP2().y)) 
-	    return true; 
+	    if (p3.x <= Math.max(this.getP1().x, this.getP2().x) && p3.x >= Math.min(this.getP1().x, this.getP2().x) && 
+	    	p3.y <= Math.max(this.getP1().y, this.getP2().y) && p3.y >= Math.min(this.getP1().y, this.getP2().y)) 
+	    	return true; 
 	  
 	    return false; 
 	} 
 	
-	static public Orientation getOrientation(Line l1, Point p3)
+	public Orientation getOrientation(Point p3)
 	{
-		int val = (int)((l1.getP2().getY() - l1.getP1().getY()) * (p3.getX() - l1.getP2().getX()) - 
-	                    (l1.getP2().getX() - l1.getP1().getX()) * (p3.getY() - l1.getP2().getY())); 
+		int val = (int)((this.getP2().getY()  - this.getP1().getY()) * (p3.getX() - this.getP2().getX()) - 
+	                    (this.getP2().getX() - this.getP1().getX()) * (p3.getY() - this.getP2().getY())); 
 	  
 	    if (val == 0) 
 	    	return Orientation.Collinear;
@@ -45,27 +46,27 @@ public class Line {
 	    return (val > 0)? Orientation.Clockwise: Orientation.CounterClockwise;
 	}
 	
-	static public double distancePointToPointOfInter(Point p, Line l1, Line l2) 
+	public double distancePointToPointOfIntersection(Point p, Line l2) 
 	{
-		Point pointInter = lineLineIntersection(l1, l2);
+		Point pointInter = this.lineLineIntersection(l2);
 		if(pointInter == null)
 		{
 			return -1;
 		}
 		else
 		{
-			return Point.distance(p, pointInter);
+			return p.distance(pointInter);
 		}
 		
 	}
 	
 	//Point of intersection
-	static public Point lineLineIntersection(Line l1, Line l2) 
+	public Point lineLineIntersection(Line l2) 
     { 
         // Line AB represented as a1x + b1y = c1 
-        double a1 = l1.getP2().getY() - l1.getP1().getY(); 
-        double b1 = l1.getP1().getX() - l1.getP2().getX(); 
-        double c1 = a1*(l1.getP1().getX()) + b1*(l1.getP1().getY()); 
+        double a1 = this.getP2().getY() - this.getP1().getY(); 
+        double b1 = this.getP1().getX() - this.getP2().getX(); 
+        double c1 = a1*(this.getP1().getX()) + b1*(this.getP1().getY()); 
        
         // Line CD represented as a2x + b2y = c2 
         double a2 = l2.getP2().getY() - l2.getP1().getY(); 
@@ -86,15 +87,17 @@ public class Line {
             return new Point(x, y,-1,-1,-1); 
         } 
     } 
-	static public boolean pointInsideLine(Line l, Point p) {
-		return Point.distance(l.getP1(), l.getP2()) == Point.distance(l.getP1(), p) + Point.distance(p, l.getP2());
+	
+	public boolean pointInsideLine(Point p) {
+		return this.getP1().distance(this.getP2()) == this.getP1().distance(p) + p.distance(this.getP2());
 	}
-	static public boolean intersect(Line l1, Line l2) 
+	
+	public boolean intersect(Line l2) 
 	{
-		Orientation o1 = getOrientation(l1, l2.getP1()); 
-		Orientation o2 = getOrientation(l1, l2.getP2());
-		Orientation o3 = getOrientation(l2, l1.getP1());
-		Orientation o4 = getOrientation(l2, l1.getP2());
+		Orientation o1 = this.getOrientation(l2.getP1()); 
+		Orientation o2 = this.getOrientation(l2.getP2());
+		Orientation o3 = l2.getOrientation(this.getP1());
+		Orientation o4 = l2.getOrientation(this.getP2());
 		
 		if(!o1.equals(o2) && !o3.equals(o4))
 			return true;
@@ -102,19 +105,19 @@ public class Line {
 		
 		// Special Cases 
 	    // p1, q1 and p2 are colinear and p2 lies on segment p1q1 
-	    if (o1.equals(Orientation.Collinear) && onSegment(l1, l2.getP1())) 
+	    if (o1.equals(Orientation.Collinear) && this.onSegment(l2.getP1())) 
 	    	return true; 
 	  
 	    // p1, q1 and q2 are colinear and q2 lies on segment p1q1 
-	    if (o2.equals(Orientation.Collinear) && onSegment(l1, l2.getP2())) 
+	    if (o2.equals(Orientation.Collinear) && this.onSegment(l2.getP2())) 
 	    	return true; 
 	  
 	    // p2, q2 and p1 are colinear and p1 lies on segment p2q2 
-	    if (o3.equals(Orientation.Collinear) && onSegment(l2, l1.getP1())) 
+	    if (o3.equals(Orientation.Collinear) && l2.onSegment(this.getP1())) 
 	    	return true; 
 	  
 	    // p2, q2 and q1 are colinear and q1 lies on segment p2q2 
-	    if (o4.equals(Orientation.Collinear) && onSegment(l2, l1.getP2())) 
+	    if (o4.equals(Orientation.Collinear) && l2.onSegment(this.getP2())) 
 	    	return true; 
 	  
 	  
