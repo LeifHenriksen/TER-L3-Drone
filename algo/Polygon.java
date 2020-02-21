@@ -1,18 +1,17 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class Polygon {
 	
-	ArrayList<Point> vertices;
-	ArrayList<Point> pointsInternes;
-	ArrayList<Line> edges;
-	String fichierAffichage;
+	private ArrayList<Point> vertices;
+	private ArrayList<Point> pointsInternes;
+	private ArrayList<Line> edges;
+	private double distanceEntrePoints;
+	private double distanceBords;
 	
-	public Polygon(String fichierAffichage, ArrayList<Point> vertices) {
-		this.fichierAffichage = fichierAffichage;
+	public Polygon(ArrayList<Point> vertices, double distanceEntrePoints, double distanceBords) {
 		this.vertices = vertices;
+		this.distanceEntrePoints = distanceEntrePoints;
+		this.distanceBords = distanceBords;
 		
 		this.pointsInternes = new ArrayList<Point>();
 		this.addPoints();
@@ -23,6 +22,8 @@ public class Polygon {
 			this.edges.add(new Line(this.vertices.get(i), this.vertices.get(i+1)));
 		}
 		this.edges.add(new Line(this.vertices.get(this.vertices.size()-1), this.vertices.get(0)));
+		
+		this.enleverPointsDehors();
 	}
 	
 	public ArrayList<Point> getVertices() {
@@ -33,32 +34,56 @@ public class Polygon {
 		return pointsInternes;
 	}
 	
-	public String getFichierAffichage() {
-		return fichierAffichage;
-	}
-
-	public void setFichierAffichage(String fichierAffichage) {
-		this.fichierAffichage = fichierAffichage;
-	}
 	//Rempli la carte de points
 	private void addPoints() 
 	{
-		int hauteurCarte   = 300;
-		int largeurCarte   = 300;
-		int distancePoints = 10;
-		for(int i = 0; i<largeurCarte/distancePoints; i++)
+		double hauteurCarte   = this.getVertices().stream()
+														.mapToDouble(p -> p.getLat())
+														.max()
+														.getAsDouble();//Point.maxY(this.getVertices()).getY();
+		
+		double largeurCarte   = this.getVertices().stream()
+				   					  					.mapToDouble(p -> p.getLng())
+				   					  					.max()
+				   					  					.getAsDouble();//(int)Point.maxX(this.getVertices()).getX();
+		
+		double lng_min =  this.getVertices().stream()
+ 											.mapToDouble(p -> p.getLng())
+ 											.min()
+ 											.getAsDouble();
+
+		double lat_min =  this.getVertices().stream()
+ 											.mapToDouble(p -> p.getLat())
+ 											.min()
+ 											.getAsDouble();
+		
+		Point p = new Point(lat_min, lng_min);
+		System.out.println(p);
+		System.out.println(hauteurCarte);
+		for(;p.getLat()<hauteurCarte; p.decalageLat(this.distanceEntrePoints))
 		{
-			for(int j = 0; j<hauteurCarte/distancePoints; j++)
+			
+			for(;p.getLng()<largeurCarte; p.decalageLng(this.distanceEntrePoints))
 			{
-				this.pointsInternes.add(new Point(i*distancePoints,j*distancePoints,-1,-1,-1));
+				this.pointsInternes.add(new Point(p.getLat(), p.getLng()));
+			}
+			p.setLng(lng_min);
+		}
+		System.out.println(this.getPointsInternes());
+		/*
+		for(int i = 0; i<largeurCarte/distanceEntrePoints; i++)
+		{
+			for(int j = 0; j<hauteurCarte/distanceEntrePoints; j++)
+			{
+				this.pointsInternes.add(new Point(i*distanceEntrePoints,j*distanceEntrePoints,-1,-1,-1));
 			}
 		}
+		*/
 	}
 	
 	private boolean pointInside(Point p) 
 	{	
 		int nbIntersections = 0;
-		int nbIntersectionsTop = 0;
 		boolean insideLine = false;
 		boolean tropProche = false;
 		//Point pointInf = new Point(9999,p.getY(),-1,-1,-1);
@@ -69,66 +94,71 @@ public class Polygon {
 		
 		for(int i = 0; i<this.edges.size(); i++)
 		{
-			if(Line.intersect(rayRight, this.edges.get(i)))
+			Line edge = this.edges.get(i);
+			if(rayRight.intersect(edge))
 			{
-				if(!(Line.lineLineIntersection(rayRight, this.edges.get(i)) == null))
+				//Verifier si on touche un coin, si oui ce que le edge contien un autre point p2, tq p2.y > p1.y 
+				if(edge.getP1().getY() == p.getY())
 				{
-					Point corner = Line.lineLineIntersection(rayRight, this.edges.get(i));
-					if(!(
-					    (corner.getX() == this.edges.get(i).getP1().getX() && 
-					     corner.getY() == this.edges.get(i).getP1().getY())
-					    ||
-					    (corner.getX() == this.edges.get(i).getP2().getX() && 
-					     corner.getY() == this.edges.get(i).getP2().getY()) 
-					   ))
+					if(edge.getP2().getY() > p.getY())
 						nbIntersections++;
-					else
-					{
-						nbIntersections--;
-					}
-					if(Point.distance(p,Line.lineLineIntersection(rayRight, this.edges.get(i))) < 3)
-						tropProche = true;
 				}
-				if(Line.pointInsideLine(this.edges.get(i), p))
+				else if(edge.getP2().getY() == p.getY())
+				{
+					if(edge.getP1().getY() > p.getY())
+						nbIntersections++;
+				}
+				else
+				{
+					nbIntersections++;
+				}
+				
+				if(edge.pointInsideLine(p))
 					insideLine = true;
 			}
-			if(Line.intersect(rayLeft, this.edges.get(i)))
+			//verifier que on n'est pas trop proche de un edge
+			if(!insideLine && (nbIntersections%2)>0)
 			{
-				if(!(Line.lineLineIntersection(rayLeft, this.edges.get(i)) == null))
+				double dis =  rayRight.distancePointToPointOfIntersection(p, edge); 
+				if(rayRight.intersect(edge))
 				{
-					if(Point.distance(p,Line.lineLineIntersection(rayLeft, this.edges.get(i))) < 3)
+					if(dis < distanceBords && dis >= 0)
 						tropProche = true;
 				}
-			}
-			if(Line.intersect(rayTop, this.edges.get(i)))
-			{
-				if(!(Line.lineLineIntersection(rayTop, this.edges.get(i)) == null))
+				
+				if(rayLeft.intersect(edge))
 				{
-					if(Point.distance(p,Line.lineLineIntersection(rayTop, this.edges.get(i))) < 3)
-						tropProche = true;
+					dis = rayLeft.distancePointToPointOfIntersection(p, edge);
+					if(dis < distanceBords && dis >= 0)
+						tropProche = true;	
 				}
-			}
-			if(Line.intersect(rayBot, this.edges.get(i)))
-			{
-				if(!(Line.lineLineIntersection(rayBot, this.edges.get(i)) == null))
+				
+				if(rayTop.intersect(edge))
 				{
-					if(Point.distance(p,Line.lineLineIntersection(rayBot, this.edges.get(i))) < 3)
-						tropProche = true;
+					dis = rayTop.distancePointToPointOfIntersection(p, edge);
+					if(dis < distanceBords && dis >= 0)
+						tropProche = true;	
+				}
+				
+				if(rayBot.intersect(edge))
+				{
+					dis = rayBot.distancePointToPointOfIntersection(p, edge);
+					if(dis < distanceBords && dis >= 0)
+						tropProche = true;	
 				}
 			}
 		}
 		if(p.getY() == 100) 
 		{
-			System.out.println("Right " + nbIntersections);
-			System.out.println("Top   " + nbIntersectionsTop);
+			//System.out.println(p + " \n Right : " + nbIntersections + ", insideLine  = " + insideLine + ", tropProche = " + tropProche);
+			//System.out.println("Top   " + nbIntersectionsTop);
 		}
-		
 		return (nbIntersections%2)>0 && !insideLine && !tropProche;
 	}
 	
-	public void enleverPointsDehors() 
+	private void enleverPointsDehors() 
 	{
-		System.out.println(this.pointsInternes.size());
+		//System.out.println(this.pointsInternes.size());
 		for(int i = this.pointsInternes.size() - 1; i>=0; i--)
 		{
 			if(!this.pointInside(this.pointsInternes.get(i)))
@@ -137,80 +167,6 @@ public class Polygon {
 				this.pointsInternes.remove(i);
 			}
 		}
-		System.out.println(this.pointsInternes.size());
-	}
-	
-	private void writePoints(BufferedWriter out) throws IOException 
-	{
-		System.out.println(this.pointsInternes.size());
-		for(int i = 0; i<this.pointsInternes.size(); i++)
-		{
-			out.write(Double.toString(this.pointsInternes.get(i).getX()));
-		    out.write(" ");
-		    out.write(Double.toString(this.pointsInternes.get(i).getY()));
-		    out.write(" 1 0 360 arc \n");
-		    if(this.pointsInternes.get(i).getY() == 100)
-		    	out.write("0 1 0 setrgbcolor \n");
-		    else
-		    	out.write("0 setgray \n");
-		    out.write("fill \n");
-		    out.write("stroke \n");
-		}
-	}
-	
-	private void writeVertices(BufferedWriter out) throws IOException 
-	{
-		this.writeVerticesLines(out);
-	}
-	
-	private void writeVerticesLines(BufferedWriter out) throws IOException 
-	{
-		for(int i = 0; i<(this.vertices.size() - 1); i++)
-		{
-			out.write(Double.toString(this.vertices.get(i).getX()));
-		    out.write(" ");
-		    out.write(Double.toString(this.vertices.get(i).getY()));
-		    out.write(" moveto \n");
-		    out.write(Double.toString(this.vertices.get(i+1).getX()));
-		    out.write(" ");
-		    out.write(Double.toString(this.vertices.get(i+1).getY()));
-		    out.write(" lineto \n");
-		    out.write("stroke \n");
-		}
-		
-		int last = this.vertices.size() - 1;
-		int first = 0;
-		out.write(Double.toString(this.vertices.get(last).getX()));
-	    out.write(" ");
-	    out.write(Double.toString(this.vertices.get(last).getY()));
-	    out.write(" moveto \n");
-	    out.write(Double.toString(this.vertices.get(first).getX()));
-	    out.write(" ");
-	    out.write(Double.toString(this.vertices.get(first).getY()));
-	    out.write(" lineto \n");
-	    out.write("stroke \n");
-	}
-	
-	public void afficherPolygon() {
-		BufferedWriter out = null;
-		try 
-		{
-		    FileWriter fstream = new FileWriter(this.fichierAffichage);
-		    out = new BufferedWriter(fstream);
-		   
-		    out.write("%!PS-Adobe-3.0 \n");
-		    out.write("%%BoundingBox: 0 0 500 500 \n");
-		    
-		    this.writeVertices(out);
-		    this.writePoints(out);
-		    
-		    out.write("showpage \n");	 
-		    out.close();
-		    
-		}
-		catch (IOException e) 
-		{
-			System.out.println("Error: " + e.getMessage()); 
-		}
+		//System.out.println(this.pointsInternes.size());
 	}
 }
