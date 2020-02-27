@@ -35,7 +35,9 @@ void server_init(server *serv, int port)
 
 void server_get_msg(server *serv)
 {
-  int n = recvfrom(serv->sockfd, serv->buffer, sizeof(serv->buffer), MSG_WAITALL, NULL, NULL);
+  int n = recvfrom(serv->sockfd, serv->buffer,
+		   sizeof(serv->buffer), MSG_WAITALL,
+		   NULL, NULL);
   if(n <= 0)
    {
      printf("Error getting msg.\n");

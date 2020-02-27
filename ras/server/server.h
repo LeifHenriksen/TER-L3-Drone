@@ -1,9 +1,10 @@
 #ifndef SERVER_H
 #define SERVER_H
+#include <stdint.h>
 
 typedef struct server{
   int  sockfd;
-  char buffer[1];
+  int8_t buffer[1];
 }server;
 
 void server_init(server *serv, int port);

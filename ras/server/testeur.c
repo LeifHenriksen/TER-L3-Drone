@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h> 
 #include <unistd.h>
+#include <stdint.h>
 
 int main(int argc, char **argv)
 {
@@ -27,7 +28,7 @@ int main(int argc, char **argv)
   servaddr.sin_port = htons(atoi(argv[2]));
   servaddr.sin_addr.s_addr = inet_addr(argv[1]);
 
-  char buffer[1];
+  int8_t buffer[1];
   buffer[0] = atoi(argv[3]);
   
   int n = sendto(sockfd, (const char *)buffer, sizeof(buffer),
