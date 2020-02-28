@@ -121,10 +121,12 @@ public class Point{
 	{
 		return Math.log(Math.tan(Math.PI / 4 + Math.toRadians(this.lat) / 2)) * RADIUS;
 	}
+	
 	private double LngToX() 
 	{
 		return Math.toRadians(this.lng) * RADIUS;
 	}
+	
 	@Override
 	public String toString() {
 		return "Point [x=" + x + ", y=" + y + ", z=" + z + ", lat=" + lat + ", lng=" + lng + "]";
