@@ -50,6 +50,34 @@ public class Pdf {
 		}
 	}
 	
+	//Affiche un graphe d'apres un tableau de points
+	static public void afficherGraphe(String fichier, Polygon poly, ArrayList<Point> graphe) 
+	{
+		BufferedWriter out = null;
+		try 
+		{
+		    FileWriter fstream = new FileWriter(fichier);
+		    out = new BufferedWriter(fstream);
+		   
+		    out.write("%!PS-Adobe-3.0 \n");
+		    //si coords cart
+		    //out.write("%%BoundingBox: 0 0 10000 10000\n");
+		    //else
+		    out.write("%%BoundingBox: 0 0 500 500\n");
+		    
+		    writeVertices(out, poly);
+		    writePoints(out, poly);
+		    writeVerticesLinesGraphe(out, graphe);
+		    
+		    out.write("showpage \n");	 
+		    out.close(); 
+		}
+		catch (IOException e) 
+		{
+			System.out.println("Error: " + e.getMessage()); 
+		}
+	}
+	
 	static public void afficherChemin(String fichier, Polygon poly, ArrayList<Point> chemin) 
 	{
 		BufferedWriter out = null;
@@ -61,7 +89,6 @@ public class Pdf {
 		    out.write("%!PS-Adobe-3.0 \n");
 		    out.write("%%BoundingBox: 0 0 500 500\n");
 		    
-
 		    writeVertices(out, poly);
 		    writePoints(out, poly);
 		    writeVerticesChemin(out, chemin);
@@ -151,6 +178,36 @@ public class Pdf {
 	
 	private static void writeVerticesLinesChemin(BufferedWriter out, ArrayList<Point> chemin) throws IOException 
 	{
+		for(int i = 0; i<chemin.size()-1; i++)
+		{
+			out.write(Double.toString(chemin.get(i).getX()));
+		    out.write(" ");
+		    out.write(Double.toString(chemin.get(i).getY()));
+		    out.write(" moveto \n");
+		    out.write(Double.toString(chemin.get(i+1).getX()));
+		    out.write(" ");
+		    out.write(Double.toString(chemin.get(i+1).getY()));
+		    out.write(" lineto \n");
+		    out.write("stroke \n");
+		}
+	}
+	
+	private static void writeVerticesLinesGraphe(BufferedWriter out, ArrayList<Point> chemin) throws IOException 
+	{
+		//Si coords cart
+			/*for(int i = 0; i<chemin.size()-1; i++)
+			{
+				out.write(Double.toString(chemin.get(i).getX()).substring(2));
+			    out.write(" ");
+			    out.write(Double.toString(chemin.get(i).getY()).substring(3));
+			    out.write(" moveto \n");
+			    out.write(Double.toString(chemin.get(i+1).getX()).substring(2));
+			    out.write(" ");
+			    out.write(Double.toString(chemin.get(i+1).getY()).substring(3));
+			    out.write(" lineto \n");
+			    out.write("stroke \n");
+			}*/
+		//else
 		for(int i = 0; i<chemin.size()-1; i++)
 		{
 			out.write(Double.toString(chemin.get(i).getX()));

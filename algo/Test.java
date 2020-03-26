@@ -53,5 +53,19 @@ public class Test {
 		
 		System.out.println(poly3.getVertices());
 		System.out.println("Fin.");
+		
+		//=======================TEST EDGE===========================//
+		ArrayList<Point> graphe = new ArrayList<Point>();
+		for(int i = 0; i<poly3.getPointsInternes().size(); i++)
+		{
+			for(int j = 0; j<poly3.getPointsInternes().size(); j++)
+			{
+				graphe.add(poly3.getPointsInternes().get(i));
+				graphe.add(poly3.getPointsInternes().get(j));
+			}
+		}
+		System.out.println(graphe.size());
+		Pdf.afficherGraphe("Graphe.ps", poly3, graphe);
+		//=======================FIN TEST EDGE=======================//
 	}
 }

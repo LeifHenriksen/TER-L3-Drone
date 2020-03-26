@@ -12,6 +12,9 @@ public class Chemin {
 	public Chemin() {
 		listePoint = new ArrayList<>();
 		edge = new ArrayList<ArrayList<Double>>();
+		
+		for(int nbLignes = 0; nbLignes < 100; nbLignes++)
+			edge.add(new ArrayList<Double>());
 	}
 	
 	//ACCESSEURS
