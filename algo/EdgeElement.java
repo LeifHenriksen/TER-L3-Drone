@@ -1,12 +1,12 @@
 
 public class EdgeElement {
-	Point p1;
+	public Point p1;
 	Point p2;
 	Double distance;
 	
-	public EdgeElement(Point p1, Point p2, double d) {
-		this.p1 = p1;
-		this.p2 = p2;
+	public EdgeElement(Point p, Point pp, double d) {
+		this.p1 = p;
+		this.p2 = pp;
 		this.distance = d;
 	}
 	
