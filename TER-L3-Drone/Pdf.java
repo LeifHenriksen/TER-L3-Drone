@@ -129,7 +129,9 @@ public class Pdf {
 	}
 	
 	private static void writeVerticesLines(BufferedWriter out, Polygon poly) throws IOException 
-	{
+	{   
+		//IF GPS
+		/*
 		for(int i = 0; i<(poly.getVertices().size() - 1); i++)
 		{
 			out.write(Double.toString(poly.getVertices().get(i).getX()).substring(2));
@@ -154,7 +156,34 @@ public class Pdf {
 	    out.write(Double.toString(poly.getVertices().get(first).getY()).substring(3));
 	    out.write(" lineto \n");
 	    out.write("stroke \n");
-	}
+	    */
+		//else
+		
+		for(int i = 0; i<(poly.getVertices().size() - 1); i++)
+		{
+			out.write(Double.toString(poly.getVertices().get(i).getX()));
+		    out.write(" ");
+		    out.write(Double.toString(poly.getVertices().get(i).getY()));
+		    out.write(" moveto \n");
+		    out.write(Double.toString(poly.getVertices().get(i+1).getX()));
+		    out.write(" ");
+		    out.write(Double.toString(poly.getVertices().get(i+1).getY()));
+		    out.write(" lineto \n");
+		    out.write("stroke \n");
+		}
+		
+		int last = poly.getVertices().size() - 1;
+		int first = 0;
+		out.write(Double.toString(poly.getVertices().get(last).getX()));
+	    out.write(" ");
+	    out.write(Double.toString(poly.getVertices().get(last).getY()));
+	    out.write(" moveto \n");
+	    out.write(Double.toString(poly.getVertices().get(first).getX()));
+	    out.write(" ");
+	    out.write(Double.toString(poly.getVertices().get(first).getY()));
+	    out.write(" lineto \n");
+	    out.write("stroke \n");
+	  }
 	
 	private static void writePointsChemin(BufferedWriter out, ArrayList<Point> chemin) throws IOException 
 	{
@@ -208,7 +237,7 @@ public class Pdf {
 			    out.write("stroke \n");
 			}*/
 		//else
-		for(int i = 0; i<chemin.size()-2; i++)
+		for(int i = 0; i<chemin.size()-1; i += 2)
 		{
 			out.write(Double.toString(chemin.get(i).getX()));
 		    out.write(" ");

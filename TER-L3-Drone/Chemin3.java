@@ -3,11 +3,15 @@ import java.util.HashMap;
 
 public class Chemin3 {
 	ArrayList<Point> listePoint;
+	ArrayList<Point> krus;
 	ArrayList<EdgeElement> edge;
 	
 	//CONSTRUCTEUR
 	public Chemin3() {
+		//listePoints = points du chemin
 		listePoint = new ArrayList<>();
+		//krus = acpm
+	    krus = new ArrayList<>();
 		edge = new ArrayList<EdgeElement>();
 	}
 	
@@ -139,7 +143,7 @@ public class Chemin3 {
 			}
 		}
 		for (Integer i = 0; i < listePoint.size(); i++) {
-		System.out.println("le point nn touve :" + p + "le point comparé : " + listePoint.get(i));
+		System.out.println("le point nn touve :" + p + "le point comparï¿½ : " + listePoint.get(i));
 		}
 		return -1;
 		
@@ -154,21 +158,21 @@ public class Chemin3 {
 			//edge.add(new EdgeElement(new Point(0,0,0,0,0), new Point(0,0,0,0,0), 0.));
 		//}
 		System.out.println("p :"+nbPoints+" aretes "+nbAretes+" "+edge.size());
+		
 		//Initialise et tri les aretes par ordre croissant les distances
 		initDistances(nbPoints);
 		
 		afficheEdge();
 		
 		//Calcul d'un arbre couvrant de poids minimum -> algo kruskal
-		listePoint = kruskal(nbPoints, nbAretes);
+		this.krus = kruskal(nbPoints, nbAretes);
+		
 		for(int i =0 ; i< maListe.size();i++) {
 			System.out.println("laaaaaaa" + maListe.get(i));
 		}
 		
-		
-		
 		System.out.println("laaaaaaaaaa" + "maajkfjej"+ maListe.size());
-		//();
+		
 		//Calcul du parcours optimale
 		//parcours();
 		
@@ -187,18 +191,12 @@ public class Chemin3 {
 		
 		Chemin3 chemin = new Chemin3();
 		Polygon poly = new Polygon(vertices, 30, 30);
-		//int nbPts= chemin.
-		//chemin.initDistances(vertices.size());
-		//chemin.trieParOdreCroissant(chemin.getEdge());	
-		
-		//chemin.setListePoint(poly.getPointsInternes());
-		//chemin.initDistances(chemin.listePoint.size());
-		//chemin.afficheEdge();
-		//chemin.kruskal(10, 10);
-		//Pdf.afficherChemin("FauxChemin.ps", poly, chemin.listePoint);
+
 		chemin.voyageurDeCommerce(poly);
 		
-		//Pdf.afficherChemin("FauxChemin.ps", poly, chemin.listePoint);
-		Pdf.afficherPolygon("FauxChemin.ps", poly);
+		Pdf.afficherChemin("Chemin.ps", poly, chemin.listePoint);
+		Pdf.afficherGraphe("Graphe.ps", poly, chemin.krus);
+		
+		System.out.println("FIN");
 	}
 }
