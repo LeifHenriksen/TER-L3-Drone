@@ -208,7 +208,7 @@ public class Pdf {
 			    out.write("stroke \n");
 			}*/
 		//else
-		for(int i = 0; i<chemin.size()-1; i++)
+		for(int i = 0; i<chemin.size()-1; i += 2)
 		{
 			out.write(Double.toString(chemin.get(i).getX()));
 		    out.write(" ");
