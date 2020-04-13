@@ -1,10 +1,16 @@
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Stack;
 
 public class Chemin3 {
 	ArrayList<Point> listePoint;
 	ArrayList<Point> krus;
 	ArrayList<EdgeElement> edge;
+	HashMap<Point,Stack<Point>> voisins;
+	ArrayList<Point> parcours;
 	
 	//CONSTRUCTEUR
 	public Chemin3() {
@@ -13,6 +19,8 @@ public class Chemin3 {
 		//krus = acpm
 	    krus = new ArrayList<>();
 		edge = new ArrayList<EdgeElement>();
+		voisins = new HashMap<>();
+		parcours = new ArrayList<>();
 	}
 	
 	//ACCESSEURS
@@ -148,6 +156,84 @@ public class Chemin3 {
 		return -1;
 		
 	}
+	
+	public ArrayList<Point> parcours(int n) {
+		System.out.println("---------------Debut parcours -----------------------");
+		HashMap <Point,Integer> dv = new HashMap<>();	//sommets deja vu : dv initialisé à 0
+		for(int i = 0; i < n; i++) {
+			dv.put(listePoint.get(i),0);
+		}
+		Point racine = listePoint.get(0);				//premier point = la racine
+		HashMap <Point,Integer> debut = new HashMap<>();
+		HashMap <Point,Point> pere = new HashMap<>();
+		
+		//Initialisation avec la racine
+		dv.put(racine,1);
+		debut.put(racine,1);
+		pere.put(racine,racine);
+		
+		Stack<Point> AT = new Stack<>();	//Pile AT (à traiter)
+		AT.push(racine);
+		
+		while(!AT.empty()) {			//tant que AT n'est pas vide
+			Point x = AT.peek();
+			if(voisins.get(x).isEmpty()) {
+				AT.pop();
+				System.out.println(AT);
+			}
+			else {
+				Point y = voisins.get(x).pop();
+				if(dv.get(y) == 0) {
+					dv.put(y,1);
+					AT.push(y);
+					pere.put(y,x);
+					System.out.println(AT);
+				}
+			}
+		}
+		
+		//Getting Set of keys from HashMap          
+		Set<Point> keySet = pere.keySet(); 
+		         
+		//Creating an ArrayList of keys by passing the keySet   
+		ArrayList<Point> listOfKeys = new ArrayList<Point>(keySet);
+		
+		//Getting Collection of values from HashMap        
+		Collection<Point> values = pere.values(); 
+		         
+		//Creating an ArrayList of values 
+		ArrayList<Point> listOfValues = new ArrayList<Point>(values);
+		
+		ArrayList<Point> result = new ArrayList<>();
+		System.out.println(listOfKeys.size());
+		for(int i = 0; i < listOfKeys.size(); i++) {
+			result.add(listOfKeys.get(i));
+			result.add(listOfValues.get(i));
+		}
+//		System.out.println("*********************************");
+//		for(int i = 0; i < listOfKeys.size(); i++) {
+//			
+//			System.out.println(listOfKeys.get(i));
+//			System.out.println(listOfValues.get(i));
+//		}
+		
+		System.out.println("----------------Fin parcours ------------------------");
+		return result;
+		
+	}
+	
+	public HashMap<Point, Stack<Point>> initVoisins(ArrayList<Point> list, int n) {
+		
+		for(int i = 0; i < n; i++) {
+			this.voisins.put(krus.get(i),new Stack<>());
+		}
+		for(int i = 0; i < n; i = i + 2) {
+			this.voisins.get(krus.get(i)).push(krus.get(i+1));
+			this.voisins.get(krus.get(i+1)).push(krus.get(i));
+		}
+		return this.voisins;
+	}
+	
 	public ArrayList<Point> voyageurDeCommerce(Polygon poly) {
 		setListePoint(poly.getPointsInternes());
 		int nbPoints = this.listePoint.size();
@@ -173,8 +259,11 @@ public class Chemin3 {
 		
 		System.out.println("laaaaaaaaaa" + "maajkfjej"+ maListe.size());
 		
-		//Calcul du parcours optimale
-		//parcours();
+		initVoisins(krus,nbPoints); //Initialisation des voisins
+		
+		
+		this.parcours = parcours(nbPoints);
+		
 		
 		return this.listePoint;
 	}
@@ -196,6 +285,9 @@ public class Chemin3 {
 		
 		Pdf.afficherChemin("Chemin.ps", poly, chemin.listePoint);
 		Pdf.afficherGraphe("Graphe.ps", poly, chemin.krus);
+		
+		Pdf.afficherChemin("Chemin2.ps", poly, chemin.parcours);
+		Pdf.afficherGraphe("Graphe2.ps", poly, chemin.parcours);
 		
 		System.out.println("FIN");
 	}
