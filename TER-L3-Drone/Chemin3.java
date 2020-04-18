@@ -311,14 +311,15 @@ public class Chemin3 {
 		vertices.add(new Point(0,0,-1,-1,-1));
 		
 		Chemin3 chemin = new Chemin3();
-		Polygon poly = new Polygon(vertices, 30	, 30);
+		Polygon poly = new Polygon(vertices, 30, 30);
 
 		ArrayList<Point> parcours = chemin.voyageurDeCommerce(poly);
 		System.out.println("taille :" + parcours.size());
 		parcours.add(parcours.get(parcours.size()-1));
 		parcours.add(parcours.get(0));
 	//	Pdf.afficherChemin("Chemin.ps", poly, chemin.listePoint);
-		Pdf.afficherGraphe("Graphe.ps", poly,parcours);
+		Pdf.afficherGraphe("Kruskal.ps", poly,chemin.krus);
+		Pdf.afficherGraphe("Chemin.ps", poly,parcours);
 		
 		//Pdf.afficherChemin("Chemin2.ps", poly, chemin.parcours);
 		//Pdf.afficherGraphe("Graphe2.ps", poly, chemin.parcours);
