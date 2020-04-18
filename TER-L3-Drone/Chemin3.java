@@ -5,22 +5,21 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 public class Chemin3 {
 	ArrayList<Point> listePoint;
 	ArrayList<Point> krus;
 	ArrayList<EdgeElement> edge;
-	HashMap<Point,Stack<Point>> voisins;
-	ArrayList<Point> parcours;
+
 	
 	//CONSTRUCTEUR
 	public Chemin3() {
 		//listePoints = points du chemin
 		listePoint = new ArrayList<>();
-		//krus = acpm
-	    krus = new ArrayList<>();
+		krus = new ArrayList<>();
 		edge = new ArrayList<EdgeElement>();
-		voisins = new HashMap<>();
-		parcours = new ArrayList<>();
+
 	}
 	
 	//ACCESSEURS
@@ -68,7 +67,7 @@ public class Chemin3 {
 		edgeElement.setDistance(temp3);
 	}
 
-	public void trieParOdreCroissant() {
+	public void triParOdreCroissant() {
 		for(int i = 0; i < this.getEdge().size(); i++) {
 			for(int j = 0; j < this.getEdge().size()-1; j++){
 				if(this.getEdge().get(j).getDistance() > this.getEdge().get(j+1).getDistance()) {
@@ -89,7 +88,7 @@ public class Chemin3 {
 		}
 		
 		//Trier par odre croissant des distances  
-		trieParOdreCroissant();						
+		triParOdreCroissant();						
 		
 	}
 	
@@ -157,21 +156,24 @@ public class Chemin3 {
 		
 	}
 	
-	public ArrayList<Point> parcours(int n) {
+	public ArrayList<Point> parcours(ArrayList<Point> kruskal) {
 		System.out.println("---------------Debut parcours -----------------------");
-		HashMap <Point,Integer> dv = new HashMap<>();	//sommets deja vu : dv initialisé à 0
-		for(int i = 0; i < n; i++) {
+		ArrayList<Point> parcours = new ArrayList<Point>();
+		HashMap<Point,ArrayList<Point>> voisins = initVoisins(kruskal);
+		HashMap <Point,Integer> dv = new HashMap<>();
+		//sommets deja vu : dv initialisé à 0
+		for(int i = 0; i < listePoint.size(); i++) {
 			dv.put(listePoint.get(i),0);
 		}
-		Point racine = listePoint.get(0);				//premier point = la racine
 		HashMap <Point,Integer> debut = new HashMap<>();
+		HashMap <Point,Integer> fin = new HashMap<>();
 		HashMap <Point,Point> pere = new HashMap<>();
 		
-		//Initialisation avec la racine
+		Point racine = listePoint.get(0);				//premier point = la racine
 		dv.put(racine,1);
 		debut.put(racine,1);
 		pere.put(racine,racine);
-		
+		Integer t =2;
 		Stack<Point> AT = new Stack<>();	//Pile AT (à traiter)
 		AT.push(racine);
 		
@@ -179,59 +181,80 @@ public class Chemin3 {
 			Point x = AT.peek();
 			if(voisins.get(x).isEmpty()) {
 				AT.pop();
-				System.out.println(AT);
+				fin.put(x,t);
+				t++;
+				
 			}
 			else {
-				Point y = voisins.get(x).pop();
+				
+				Point y =  voisins.get(x).get(voisins.get(x).size()-1);
+				voisins.get(x).remove(voisins.get(x).size()-1);
+				
+				System.out.println("y : " + y);
 				if(dv.get(y) == 0) {
+					
 					dv.put(y,1);
 					AT.push(y);
+					debut.put(y,t);
+					t++;
 					pere.put(y,x);
-					System.out.println(AT);
+					parcours.add(x);
+					parcours.add(y);
+				}
+				if(voisins.get(x).isEmpty()) {
+					Point leplusproche = new Point(9999999,9999999,0,0,0);
+					for (int i = 0; i < listePoint.size(); i++) {
+						if(  (!(x.equals(listePoint.get(i)))) && dv.get(listePoint.get(i))==0) {
+							if(Point.distance(x, listePoint.get(i))<Point.distance(x, leplusproche)) {
+								leplusproche= listePoint.get(i);
+								
+							}
+						}
+					}
+					if(!leplusproche.equals(new Point(9999999,9999999,0,0,0))) {
+					voisins.get(x).add(leplusproche);
+					}
 				}
 			}
 		}
+		/*
+		while(!AT.empty()) {			//tant que AT n'est pas vide
+			Point x = AT.peek();
+			if(voisins.get(x).isEmpty()) {
+				AT.pop();
+				fin.put(x,t);
+				t++;
+				
+			}
+			else {
+				Point y =  voisins.get(x).get(voisins.get(x).size()-1);
+				voisins.get(x).remove(voisins.get(x).size()-1);
+				if(dv.get(y) == 0) {
+					dv.put(y,1);
+					AT.push(y);
+					debut.put(y,t);
+					t++;
+					pere.put(y,x);
+					
+				}
+			}
+		}*/
 		
-		//Getting Set of keys from HashMap          
-		Set<Point> keySet = pere.keySet(); 
-		         
-		//Creating an ArrayList of keys by passing the keySet   
-		ArrayList<Point> listOfKeys = new ArrayList<Point>(keySet);
 		
-		//Getting Collection of values from HashMap        
-		Collection<Point> values = pere.values(); 
-		         
-		//Creating an ArrayList of values 
-		ArrayList<Point> listOfValues = new ArrayList<Point>(values);
-		
-		ArrayList<Point> result = new ArrayList<>();
-		System.out.println(listOfKeys.size());
-		for(int i = 0; i < listOfKeys.size(); i++) {
-			result.add(listOfKeys.get(i));
-			result.add(listOfValues.get(i));
-		}
-//		System.out.println("*********************************");
-//		for(int i = 0; i < listOfKeys.size(); i++) {
-//			
-//			System.out.println(listOfKeys.get(i));
-//			System.out.println(listOfValues.get(i));
-//		}
-		
-		System.out.println("----------------Fin parcours ------------------------");
-		return result;
+		return parcours;
 		
 	}
 	
-	public HashMap<Point, Stack<Point>> initVoisins(ArrayList<Point> list, int n) {
-		
-		for(int i = 0; i < n; i++) {
-			this.voisins.put(krus.get(i),new Stack<>());
+	public HashMap<Point,ArrayList<Point>> initVoisins(ArrayList<Point> maListe){
+		HashMap<Point,ArrayList<Point>> voisins = new HashMap<Point, ArrayList<Point>>();
+		for (int i = 0; i < listePoint.size(); i++) {
+			voisins.put(listePoint.get(i),new ArrayList<Point>());
 		}
-		for(int i = 0; i < n; i = i + 2) {
-			this.voisins.get(krus.get(i)).push(krus.get(i+1));
-			this.voisins.get(krus.get(i+1)).push(krus.get(i));
+		for (int i = 0; i <maListe.size()-1 ; i+=2) {
+				voisins.get(maListe.get(i)).add(maListe.get(i+1));
+				voisins.get(maListe.get(i+1)).add(maListe.get(i));
 		}
-		return this.voisins;
+		return voisins;
 	}
 	
 	public ArrayList<Point> voyageurDeCommerce(Polygon poly) {
@@ -240,54 +263,65 @@ public class Chemin3 {
 		int nbAretes = (nbPoints*(nbPoints-1))/2;
 		ArrayList<Point> maListe = new ArrayList<>();
 		
-		//for(int i = 0; i < nbAretes; i++) {
-			//edge.add(new EdgeElement(new Point(0,0,0,0,0), new Point(0,0,0,0,0), 0.));
-		//}
-		System.out.println("p :"+nbPoints+" aretes "+nbAretes+" "+edge.size());
-		
+	
 		//Initialise et tri les aretes par ordre croissant les distances
+		System.out.println("avant init ");
 		initDistances(nbPoints);
+		System.out.println("apres init ");
 		
 		afficheEdge();
 		
 		//Calcul d'un arbre couvrant de poids minimum -> algo kruskal
 		this.krus = kruskal(nbPoints, nbAretes);
-		
-		for(int i =0 ; i< maListe.size();i++) {
-			System.out.println("laaaaaaa" + maListe.get(i));
+		HashMap<Point,ArrayList<Point>> voisins = initVoisins(krus);
+		/*for(int i =0 ; i< krus.size()-1;i+=2) {
+		//	System.out.println("vosins :" +  krus.get(i) + voisins.get(krus.get(i)));
 		}
+		for (int i = 0; i < listePoint.size(); i++) {
+			for (int j = 0; j < listePoint.size(); j++) {
+				if(i!=j) {
+				krus.add(listePoint.get(i));
+				krus.add(listePoint.get(j));
+				}
+			}
+		}*/
+		ArrayList<Point> parcours = parcours(krus);
 		
-		System.out.println("laaaaaaaaaa" + "maajkfjej"+ maListe.size());
+	
 		
-		initVoisins(krus,nbPoints); //Initialisation des voisins
-		
-		
-		this.parcours = parcours(nbPoints);
+		//initVoisins(krus,nbPoints); //Initialisation des voisins
 		
 		
-		return this.listePoint;
+		//this.parcours = parcours(nbPoints);
+		
+		
+		return parcours;
 	}
 	
 	
 	public static void main(String[] args) 
 	{
 		ArrayList<Point> vertices = new ArrayList<Point>();
+		
 		vertices.add(new Point(0,0,-1,-1,-1));
+		
 		vertices.add(new Point(400,0,-1,-1,-1));
 		vertices.add(new Point(400,400,-1,-1,-1));
 		vertices.add(new Point(0,400,-1,-1,-1));
 		vertices.add(new Point(0,0,-1,-1,-1));
 		
 		Chemin3 chemin = new Chemin3();
-		Polygon poly = new Polygon(vertices, 30, 30);
+		Polygon poly = new Polygon(vertices, 30	, 30);
 
-		chemin.voyageurDeCommerce(poly);
+		ArrayList<Point> parcours = chemin.voyageurDeCommerce(poly);
+		System.out.println("taille :" + parcours.size());
+		parcours.add(parcours.get(parcours.size()-1));
+		parcours.add(parcours.get(0));
+	//	Pdf.afficherChemin("Chemin.ps", poly, chemin.listePoint);
+		Pdf.afficherGraphe("Graphe.ps", poly,parcours);
 		
-		Pdf.afficherChemin("Chemin.ps", poly, chemin.listePoint);
-		Pdf.afficherGraphe("Graphe.ps", poly, chemin.krus);
-		
-		Pdf.afficherChemin("Chemin2.ps", poly, chemin.parcours);
-		Pdf.afficherGraphe("Graphe2.ps", poly, chemin.parcours);
+		//Pdf.afficherChemin("Chemin2.ps", poly, chemin.parcours);
+		//Pdf.afficherGraphe("Graphe2.ps", poly, chemin.parcours);
 		
 		System.out.println("FIN");
 	}
