@@ -26,9 +26,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +68,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private Point p3 = new Point(0,3,5,43.86,3.9036);
     private Point p4 = new Point(40,60,100,43.96,3.98833);
     private GoogleMap gMap;
-
+    private UDPClient udp;
     private Button locate, add, clear;
     private Button config, upload, start, stop;
     private Button gen;
@@ -121,7 +124,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
         });
     }
-
+//On initialise l'interface utilisateur
     private void initUI() {
 
         locate = (Button) findViewById(R.id.locate);
@@ -165,7 +168,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
 
         setContentView(R.layout.activity_main);
-
+        //On crée une instance d'UDP
+        udp = new UDPClient();
+        //On envoi une instruction au raspberry grâce à cette instance a faire quand le drone est arrivé a un point
+        udp.sendInstruction();
         IntentFilter filter = new IntentFilter();
         filter.addAction(DJIDemoApplication.FLAG_CONNECTION_CHANGE);
         registerReceiver(mReceiver, filter);
@@ -187,13 +193,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             onProductConnectionChange();
         }
     };
-
+    //Ici on  initie les controleurs de vols du drone et on se log sur dji developer sans cela l'appli ne peut pas communiquer avec notre drone
     private void onProductConnectionChange()
     {
         initFlightController();
         loginAccount();
     }
 
+    //Cette fonction sert donc a nous connecter au compte dji developer afin que l'appli puisse commuuniquer avec notre drone
     private void loginAccount(){
 
         UserAccountManager.getInstance().logIntoDJIUserAccount(this,
@@ -209,7 +216,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
                 });
     }
-
+//Ici on fait les verifications qui vont permettrent que le drone soit prêt a voler
     private void initFlightController() {
 
         BaseProduct product = DJIDemoApplication.getProductInstance();
@@ -221,7 +228,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         if (mFlightController != null) {
             mFlightController.setStateCallback(new FlightControllerState.Callback() {
-
+                //on a ici une instance de FlightControllerState qui va nous servir a recuperer les informations courantes sur le drone
+                //C'est a dire dans notre cas la position du drone
                 @Override
                 public void onUpdate(FlightControllerState djiFlightControllerCurrentState) {
                     droneLocationLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
@@ -285,7 +293,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         gMap.setOnMapClickListener(this);// add the listener for click for amap object
 
     }
-
+//S'inspirer de cette methode pour generer le parcours
     @Override
     public void onMapClick(LatLng point) {
         if (isAdd == true){
@@ -301,9 +309,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 waypointList.add(mWaypoint);
                 waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
             }
+
+
         }else{
             setResultToToast("Cannot Add Waypoint");
         }
+
+
     }
 
     public static boolean checkGpsCoordination(double latitude, double longitude) {
@@ -392,18 +404,79 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
         }
     }
-    //
+    //Ajout du parcours a la mission du drone
     private void genererParcours(GoogleMap googleMap) {
         if (gMap == null) {
             gMap = googleMap;
             setUpMap();
         }
-        Polygon p = new Polygon(pointsFinal,100,100);
-        for (int i = 0; i < p.getPointsInternes().size(); i++) {
-    System.out.println(p.getPointsInternes().get(i));
-            gMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(p.getPointsInternes().get(i).getLat(),p.getPointsInternes().get(i).getLng()))
-                    .title("hello world"));
+        com.dji.GSDemo.GoogleMap.Polygon p = new com.dji.GSDemo.GoogleMap.Polygon(pointsFinal,20,10);
+        Chemin chemin = new Chemin();
+        ArrayList<Point> parcours = chemin.voyageurDeCommerce(p);
+        ArrayList<Point> parcoursFinal = new ArrayList<Point>();
+        parcours.add(parcours.get(parcours.size()-1));
+        parcours.add(parcours.get(0));
+        for(int i = 0; i < parcours.size(); i += 2)
+        {
+            parcoursFinal.add(parcours.get(i));
+            PolylineOptions polylines = new PolylineOptions();
+
+            LatLng from = new LatLng(parcours.get(i).getLat(), parcours.get(i).getLng());
+            LatLng to = new LatLng(parcours.get(i+1).getLat(), parcours.get(i+1).getLng());
+            polylines.add(from, to).color(0xffF9A825).width(12);
+
+
+            gMap.addPolyline(polylines);
+
+
+
+        }
+
+        for (int i = 0; i < parcoursFinal.size(); i++) {
+    //System.out.println(p.getPointsInternes().get(i));
+            if(i==0) {
+                gMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(parcoursFinal.get(i).getLat(), parcoursFinal.get(i).getLng()))
+                        .title("Point n° " + i)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+            }
+            else if(i==1) {
+                gMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(parcoursFinal.get(i).getLat(), parcoursFinal.get(i).getLng()))
+                        .title("Point n° " + i)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+
+            }
+            else if(i==parcoursFinal.size()-1) {
+                gMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(parcoursFinal.get(i).getLat(), parcoursFinal.get(i).getLng()))
+                        .title("Point n° " + i)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+
+            }
+            else {
+                gMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(parcoursFinal.get(i).getLat(), parcoursFinal.get(i).getLng()))
+                        .title("Point n° " + i));
+            }
+
+
+            Waypoint mWaypoint = new Waypoint(parcoursFinal.get(i).getLat(), parcoursFinal.get(i).getLng(), 10);//10 metres par
+            waypointList.add(mWaypoint);
+            waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
+            //Add Waypoints to Waypoint arraylist;
+
+
+
+        }
+        if (waypointMissionBuilder != null) {
+
+          waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
+        }else
+        {
+            waypointMissionBuilder = new WaypointMission.Builder();
+            waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
         }
 
     }
@@ -525,7 +598,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void configWayPointMission(){
-
+    System.out.println("W_1");
         if (waypointMissionBuilder == null){
 
             waypointMissionBuilder = new WaypointMission.Builder().finishedAction(mFinishedAction)
@@ -535,6 +608,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
         }else
+
         {
             waypointMissionBuilder.finishedAction(mFinishedAction)
                     .headingMode(mHeadingMode)
@@ -543,7 +617,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
         }
-
+        System.out.println("W_2");
         if (waypointMissionBuilder.getWaypointList().size() > 0){
 
             for (int i=0; i< waypointMissionBuilder.getWaypointList().size(); i++){
@@ -552,12 +626,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
             setResultToToast("Set Waypoint attitude successfully");
         }
-
+        System.out.println("W_3");
+        System.out.println("W "+ waypointList.size());
+        System.out.println(waypointMissionBuilder.toString());
         DJIError error = getWaypointMissionOperator().loadMission(waypointMissionBuilder.build());
         if (error == null) {
             setResultToToast("loadWaypoint succeeded");
         } else {
-            setResultToToast("loadWaypoint failed " + error.getDescription());
+            setResultToToast("loadWaypoint failed " + error.getDescription() + waypointList.size());
         }
     }
 
