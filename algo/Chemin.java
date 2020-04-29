@@ -181,22 +181,23 @@ public class Chemin {
 		Stack<Point> AT = new Stack<>();	//Pile AT (� traiter)
 		AT.push(racine);
 		
-		while(!AT.empty()) {			//tant que AT n'est pas vide
+		while(!AT.empty()) 
+		{			
+			//tant que AT n'est pas vide
 			Point x = AT.peek();
 			if(voisins.get(x).isEmpty()) {
 				AT.pop();
 				fin.put(x,t);
-				t++;
-				
+				t++;	
 			}
 			else 
-			{
-				
+			{	
 				Point y =  voisins.get(x).get(voisins.get(x).size()-1);
 				voisins.get(x).remove(voisins.get(x).size()-1);
 				
 				System.out.println("dv = " + dv.get(y) + " y = " + y);
-				if(dv.get(y) == 0) {
+				if(dv.get(y) == 0) 
+				{
 					
 					dv.put(y,1);
 					AT.push(y);
@@ -205,28 +206,28 @@ public class Chemin {
 					pere.put(y,x);
 					parcours.add(x);
 					parcours.add(y);
-			}
-			if(voisins.get(x).isEmpty()) 
-			{
-				Point leplusproche = new Point(9999999,9999999, 0, 0, 0);
-				for (int i = 0; i < listePoint.size(); i++) 
+				}
+				if(voisins.get(x).isEmpty()) 
 				{
-					if(  (!(x.equals(listePoint.get(i)))) && dv.get(listePoint.get(i))==0) 
+					Point leplusproche = new Point(9999999,9999999, 0, 0, 0);
+					for (int i = 0; i < listePoint.size(); i++) 
 					{
-						if(x.distance(listePoint.get(i))<x.distance(leplusproche)) 
+						if(  (!(x.equals(listePoint.get(i)))) && dv.get(listePoint.get(i))==0) 
 						{
-							leplusproche= listePoint.get(i);	
+							if(x.distance(listePoint.get(i))<x.distance(leplusproche)) 
+							{
+								leplusproche= listePoint.get(i);	
+							}
 						}
 					}
-				}
-				if(leplusproche.getX() != 9999999 && leplusproche.getY() != 9999999) 
-				{
+					if(leplusproche.getX() != 9999999 && leplusproche.getY() != 9999999) 
+					{
 					    System.out.println("Lpp = " + leplusproche + ", bool = " + new Point(9999999,9999999,0,0,0));
 						voisins.get(x).add(leplusproche);
+					}
 				}
 			}
 		}
-	}
 		/*
 		while(!AT.empty()) {			//tant que AT n'est pas vide
 			Point x = AT.peek();

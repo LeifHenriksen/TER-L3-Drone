@@ -21,8 +21,14 @@ public class Test {
 		//==============================Dans Appli=================================
 		Chemin chemin = new Chemin();
         ArrayList<Point> parcours = chemin.voyageurDeCommerce(poly3);
-		parcours.add(parcours.get(parcours.size()-1));
+        ArrayList<Point> p2 = new ArrayList<Point>();
+        parcours.add(parcours.get(parcours.size()-1));
 		parcours.add(parcours.get(0));
+		for(int i = 0; i < parcours.size(); i += 2)
+        {
+        	p2.add(parcours.get(i));
+        }
+		System.out.println(p2);
 		//==============================Fin Appli=================================
 		
 		System.out.println("nbdepoints : " + poly3.getPointsInternes().size());
