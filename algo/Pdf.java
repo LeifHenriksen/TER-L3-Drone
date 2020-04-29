@@ -61,9 +61,9 @@ public class Pdf {
 		   
 		    out.write("%!PS-Adobe-3.0 \n");
 		    //si coords cart
-		    //out.write("%%BoundingBox: 0 0 10000 10000\n");
+		    out.write("%%BoundingBox: 0 0 10000 10000\n");
 		    //else
-		    out.write("%%BoundingBox: 0 0 500 500\n");
+		    //out.write("%%BoundingBox: 0 0 500 500\n");
 		    
 		    writeVertices(out, poly);
 		    writePoints(out, poly);
@@ -195,7 +195,7 @@ public class Pdf {
 	private static void writeVerticesLinesGraphe(BufferedWriter out, ArrayList<Point> chemin) throws IOException 
 	{
 		//Si coords cart
-			/*for(int i = 0; i<chemin.size()-1; i++)
+			for(int i = 0; i<chemin.size()-1; i++)
 			{
 				out.write(Double.toString(chemin.get(i).getX()).substring(2));
 			    out.write(" ");
@@ -206,9 +206,9 @@ public class Pdf {
 			    out.write(Double.toString(chemin.get(i+1).getY()).substring(3));
 			    out.write(" lineto \n");
 			    out.write("stroke \n");
-			}*/
+			}
 		//else
-		for(int i = 0; i<chemin.size()-1; i += 2)
+		/*for(int i = 0; i<chemin.size()-1; i += 2)
 		{
 			out.write(Double.toString(chemin.get(i).getX()));
 		    out.write(" ");
@@ -219,7 +219,7 @@ public class Pdf {
 		    out.write(Double.toString(chemin.get(i+1).getY()));
 		    out.write(" lineto \n");
 		    out.write("stroke \n");
-		}
+		}*/
 	}
 
 }

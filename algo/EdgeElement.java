@@ -1,4 +1,3 @@
-
 public class EdgeElement {
 	public Point p1;
 	Point p2;
