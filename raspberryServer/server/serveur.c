@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 
 char *reverse(char *str){
     char tmp, *src, *dst;
@@ -72,8 +74,11 @@ int main(int argc, char *argv[]){
  
   unsigned int ouverture = atoi(argv[2]);
   unsigned int temps = atoi(argv[3]);
-  char messagesRecus[100];
+  long int messageRecu;
     
+  time_t rawtime;
+  struct tm * timeinfo;
+
   struct sockaddr_in addrC ;
   socklen_t lgAddrC = sizeof(struct sockaddr_in) ;
 
@@ -81,39 +86,30 @@ int main(int argc, char *argv[]){
 
   while(1){
     
-    int rcv = recvfrom(ds, &messagesRecus, sizeof(messagesRecus),0, (struct sockaddr *) &addrC, &lgAddrC);
+    int rcv = recvfrom(ds, &messageRecu, sizeof(messageRecu),0, (struct sockaddr *) &addrC, &lgAddrC);
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
 
     if(rcv < 0){
       perror("Serveur : erreur à la reception :");
       break;
-    }
-    if(rcv > 0){
-      
-    }
-    if(!strcmp(messagesRecus, "1")){
-      printf("# SIG : %s \n", messagesRecus); 
-      // Envoie message au RAS
-
-      char requete[200] = "python script.py ";
-      char deg[10] = {0};
-      char time[10] = {0};
-      itoa(ouverture,deg);
-      itoa(temps, time);
-      strcat(requete, deg);
-      strcat(requete," ");
-      strcat(requete, time);
-
-      system(requete);
-      
-    } else if(!strcmp(messagesRecus, "stop")){
-      // Signal d'arret du serveur
-      printf("# STOP \n"); 
-      break;
     } else {
-      printf("# MSG  : %s \n", messagesRecus);
-    } 
-  }
-  
+      if(messageRecu==1){
+        printf("# SIG : %02d:%02d:%02d \n", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); 
+        // Envoie message au RAS
 
+        char requete[200] = "python script.py ";
+        char deg[10] = {0};
+        char time[10] = {0};
+        itoa(ouverture,deg);
+        itoa(temps, time);
+        strcat(requete, deg);
+        strcat(requete," ");
+        strcat(requete, time);
+
+        system(requete);	
+      }
+    }
+  }
   close (ds);
 }
