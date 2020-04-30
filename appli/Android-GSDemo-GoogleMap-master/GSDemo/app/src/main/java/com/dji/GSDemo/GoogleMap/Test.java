@@ -1,3 +1,5 @@
+package com.dji.GSDemo.GoogleMap;
+
 import java.util.ArrayList;
 
 public class Test {

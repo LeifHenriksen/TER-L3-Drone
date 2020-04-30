@@ -1,3 +1,4 @@
+package com.dji.GSDemo.GoogleMap;
 public class EdgeElement {
 	public Point p1;
 	Point p2;

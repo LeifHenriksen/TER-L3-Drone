@@ -1,3 +1,4 @@
+package com.dji.GSDemo.GoogleMap;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;

@@ -1,9 +1,11 @@
+package com.dji.GSDemo.GoogleMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 //import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
@@ -56,31 +58,11 @@ public class Chemin {
 			System.out.println();
 		}
 	}
-	
-	public static void swap(EdgeElement edgeElement, EdgeElement edgeElement2) {			//Echange deux points
-		Point temp = edgeElement2.getP1();
-		edgeElement2.setP1(edgeElement.getP1());
-		edgeElement.setP1(temp);
-		
-		Point temp2 = edgeElement2.getP2();
-		edgeElement2.setP2(edgeElement.getP2());
-		edgeElement.setP2(temp2);
-		
-		Double temp3 = edgeElement2.getDistance();
-		edgeElement2.setDistance(edgeElement.getDistance());
-		edgeElement.setDistance(temp3);
-	}
 
 	public void triParOdreCroissant() {
-		for(int i = 0; i < this.getEdge().size(); i++) {
-			for(int j = 0; j < this.getEdge().size()-1; j++){
-				if(this.getEdge().get(j).getDistance() > this.getEdge().get(j+1).getDistance()) {
-					swap(this.getEdge().get(j),this.getEdge().get(j+1));
-				}
-			}
-		}
+		edge = this.getEdge().stream().sorted((i,j)-> i.getDistance().compareTo(j.getDistance())).collect(Collectors.toCollection(ArrayList::new));
 	}
-	
+
 	public void initDistances(int n) {
 		int k = 0;
 		//Remplissage de edge
