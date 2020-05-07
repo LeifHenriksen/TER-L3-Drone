@@ -68,13 +68,7 @@ public class Chemin3 {
 	}
 
 	public void triParOdreCroissant() {
-		for(int i = 0; i < this.getEdge().size(); i++) {
-			for(int j = 0; j < this.getEdge().size()-1; j++){
-				if(this.getEdge().get(j).getDistance() > this.getEdge().get(j+1).getDistance()) {
-					swap(this.getEdge().get(j),this.getEdge().get(j+1));
-				}
-			}
-		}
+		edge = this.getEdge().stream().sorted((i,j)-> i.getDistance().compareTo(j.getDistance())).collect(Collectors.toCollection(ArrayList::new));
 	}
 	
 	public void initDistances(int n) {
