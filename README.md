@@ -1,3 +1,4 @@
 # TER-L3-Drone
-#Rapport
-https://www.overleaf.com/project/5e32f9c970e6320001fbce9b
+* [Rapport du projet](https://github.com/LeifHenriksen/TER-L3-Drone/blob/master/Rapport_Projet_Drone_2020(2).pdf)
+
+![Dji](https://github.com/LeifHenriksen/TER-L3-Drone/blob/master/dji.png =217x124)
