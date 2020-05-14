@@ -61,6 +61,8 @@ import dji.sdk.useraccount.UserAccountManager;
 public class MainActivity extends FragmentActivity implements View.OnClickListener, GoogleMap.OnMapClickListener, OnMapReadyCallback {
 
     protected static final String TAG = "GSDemoActivity";
+    int space;
+    int spaceBorders;
     private ArrayList<Point> points = new ArrayList<>();
     private ArrayList<Point> pointsFinal = new ArrayList<>();
     private Point p1 = new Point(1,2,3,43.6,3.8833);
@@ -71,11 +73,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private UDPClient udp;
     private Button locate, add, clear;
     private Button config, upload, start, stop;
-    private Button gen;
+    private Button gen,send;
+    ArrayList<Point> parcoursFinal = new ArrayList<>();
 
     private boolean isAdd = false;
 
     private double droneLocationLat = 181, droneLocationLng = 181;
+    private double droneLocLat = 181, droneLocLng = 181;
     private final Map<Integer, Marker> mMarkers = new ConcurrentHashMap<Integer, Marker>();
     private Marker droneMarker = null;
 
@@ -135,6 +139,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         start = (Button) findViewById(R.id.start);
         stop = (Button) findViewById(R.id.stop);
         gen= (Button) findViewById(R.id.genereParcours);
+        send=(Button) findViewById(R.id.send);
 
         locate.setOnClickListener(this);
         add.setOnClickListener(this);
@@ -144,6 +149,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         start.setOnClickListener(this);
         stop.setOnClickListener(this);
         gen.setOnClickListener(this);
+        send.setOnClickListener(this);
 
     }
 
@@ -364,7 +370,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
             }
             case R.id.genereParcours:{
-                genererParcours(gMap);
+                showSpaceSettingsDialog();
             }
             break;
             case R.id.add:{
@@ -380,12 +386,17 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                 });
                 waypointList.clear();
+                pointsFinal.clear();
                 waypointMissionBuilder.waypointList(waypointList);
                 updateDroneLocation();
                 break;
             }
             case R.id.config:{
                 showSettingDialog();
+                break;
+            }
+            case R.id.send:{
+                udp.sendInstruction();
                 break;
             }
             case R.id.upload:{
@@ -404,16 +415,52 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
         }
     }
+    public void showSpaceSettingsDialog()
+
+    {
+        LinearLayout spaceSettings = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_space_settings, null);
+
+        final TextView space_TV = (TextView) spaceSettings.findViewById(R.id.espace);
+        final TextView space_borders_TV = (TextView) spaceSettings.findViewById(R.id.espacebord);
+        new AlertDialog.Builder(this)
+                .setTitle("")
+                .setView(spaceSettings)
+                .setPositiveButton("Finish", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        String spaceString = space_TV.getText().toString();
+                        space = Integer.parseInt(nulltoIntegerDefalt(spaceString));
+                        String spaceBordersString = space_borders_TV.getText().toString();
+                        spaceBorders = Integer.parseInt(nulltoIntegerDefalt(spaceBordersString));
+                        Log.e(TAG, "espace entre les pt " + space);
+                        Log.e(TAG, "espace entre pt et bord " + spaceBorders);
+                        genererParcours(gMap, space, spaceBorders);
+                    }
+
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+
+                })
+                .create()
+                .show();
+    }
+
     //Ajout du parcours a la mission du drone
-    private void genererParcours(GoogleMap googleMap) {
+    private void genererParcours(GoogleMap googleMap,int s,int z) {
+
         if (gMap == null) {
             gMap = googleMap;
             setUpMap();
         }
-        com.dji.GSDemo.GoogleMap.Polygon p = new com.dji.GSDemo.GoogleMap.Polygon(pointsFinal,20,10);
+
+
+        com.dji.GSDemo.GoogleMap.Polygon p = new com.dji.GSDemo.GoogleMap.Polygon(pointsFinal,s,z);
         Chemin chemin = new Chemin();
         ArrayList<Point> parcours = chemin.voyageurDeCommerce(p);
-        ArrayList<Point> parcoursFinal = new ArrayList<Point>();
+
         parcours.add(parcours.get(parcours.size()-1));
         parcours.add(parcours.get(0));
         for(int i = 0; i < parcours.size(); i += 2)
@@ -652,10 +699,22 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         });
 
     }
-
+//ici on démarre la mission et on envoi une instruction quand le drone a atteint un point
     private void startWaypointMission(){
 
         getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {
+            FlightControllerState djiFlightControllerCurrentState;{
+                droneLocLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
+                droneLocLng = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
+                updateDroneLocation();
+
+                for (int i = 0 ;i < parcoursFinal.size();i++) {
+                    if (droneLocLat == parcoursFinal.get(i).getLat() && droneLocLng == parcoursFinal.get(i).getLng()) {
+                        udp.sendInstruction();
+                        udp.sendInstruction();
+                    }
+                }
+            }
             @Override
             public void onResult(DJIError error) {
                 setResultToToast("Mission Start: " + (error == null ? "Successfully" : error.getDescription()));
@@ -680,17 +739,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             gMap = googleMap;
             setUpMap();
         }
-
-        points.add(p1);
-        points.add(p2);
-        points.add(p3);
-        points.add(p4);
-        for (int i = 0; i < points.size(); i++) {
-
-            gMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(points.get(i).getLat(),points.get(i).getLng()))
-                    .title("hello world"));
-        }
+        gMap.setMyLocationEnabled(true);
     }
 
 }
